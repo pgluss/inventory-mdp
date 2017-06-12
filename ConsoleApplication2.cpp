@@ -28,13 +28,16 @@
 // on the bounday, then it will bounce back to itself (instead of any of its neighbours).
 // See the update of T4v
 
-#include "stdafx.h"	//comment for using with visual studio
+//#include "stdafx.h"	//for using with visual studio
 #include "state.h"
 #include "time.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <array>
+#include <cmath>
+
 using namespace std;
 
 double startingValue;
@@ -517,12 +520,14 @@ double space::T2V(int x1, int x2)
 double space::T4V(int x1, int x2)
 {
 	double curMin = min(states_[index(x1, x2)]->f(), states_[index(x1+1, x2)]->f());
-	if (x2 == 0)
+	if (x2 == 0) {
 		return curMin;
-	else if (x2 > 0)
-	{
+	} else if (x2 > 0) {
 		return  min(curMin, states_[index(x1+1, x2-1)]->f());
-	}
+	} else {
+    cerr << "ERROR: x2 is less than zero" << endl;
+    return NAN; 
+  }
 
 }
 ///////////////////Test optimal Operator T2
