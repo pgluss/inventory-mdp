@@ -966,6 +966,5 @@ int main (int argc, char * const argv[])
 
 	heuristicsResultFile.close();
 	cout << "Complete!!" << endl;
-	cin >> c;
 	return 0;
 }
