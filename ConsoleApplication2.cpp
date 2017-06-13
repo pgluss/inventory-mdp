@@ -30,8 +30,8 @@
 
 //#include "stdafx.h"	//for using with visual studio
 #include "state.h"
-#include "time.h"
 
+#include <ctime>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -44,70 +44,58 @@ double startingValue;
 double avgCost;
 int BOUND = 40;
 
-double 
-space::h( int x1, int x2 )
-{
+double space::h(int x1, int x2) {
 	double currentH = 0;
-	if (x1 < 0)
-	{
+	if (x1 < 0) {
 		x1 = -x1;
 		currentH += x1 * B1;
-	}
-	else
+	} else {
 		currentH += x1 * H1;
+  }
 
-	if (x2 < 0)
-		{
-			x2 = -x2;
-			currentH += x2 * B2;
-		}
-	else
+	if (x2 < 0)	{
+		x2 = -x2;
+		currentH += x2 * B2;
+	} else {
 		currentH += x2 * H2;
+  }
 
 	return currentH;
 }
 
-space::space( int n, int m ) : n_(n), m_(m)
-{
-	int i, j, k = 0;
+/* Constructs a new space object
+ * 
+ * Takes two ints n and m
+ */
+space::space(int n, int m) : n_(n), m_(m) {
+	int k = 0;
 
-	for ( i = n; i <= m; ++i ) {
-		for ( j = n; j <= m; ++j ) {
+	for (int i = n; i <= m; ++i ) {
+		for (int j = n; j <= m; ++j ) {
 			// add boundary conditions here
 			state *s = new state( i, j);
 			// state *s = new state( i, j, 100);
 			states_.push_back(s);
-			if ( i == 0 && j == 0 )
+			if ( i == 0 && j == 0 ) {
 				initial_ = s;
+      }
 			++k;
 		}
 	}
 	//std::cout << k << " states were generated\n";
 }
 
-long
-space::index( int x1, int x2 )
-{
-	if ( x1 < n_ )
-		x1 = n_;
-	if ( x1 > m_ )
-		x1 = m_;
-	if ( x2 < n_ )
-		x2 = n_;
-	if ( x2 > m_ )
-		x2 = m_;
+long space::index(int x1, int x2) {
+  if (x1 < n_) x1 = n_ ;
+	if (x1 > m_) x1 = m_ ;
+	if (x2 < n_) x2 = n_ ;
+	if (x2 > m_) x2 = m_ ;
 
-	long ind = x2 - n_;
-
-	ind += ( x1 - n_ ) * ( m_ - n_ + 1);
-
-	//std::cout << ind << std::endl;
-	return ind;
+  // returns index
+	return (x2 - n_) + ((x1 - n_) * (m_ - n_ + 1));
 }
 
-double
-space::iteration( int iter, int method, int Sx, int Sy )
-{
+double space::iteration(int iter, int method, int Sx, int Sy) {
 	double error = 0.0;
 	double max_diff = 0.0;
 	double min_diff = 1000.0;
@@ -158,39 +146,15 @@ space::iteration( int iter, int method, int Sx, int Sy )
 		//}
 
 
-		// find all successors
-		if (x1 > n_) {
-			index1 = index(x1-1, x2);
-		} else {
-			index1 = index(x1, x2);
-		}
-		s1 = states_[index1];
-
-		if (x2 > n_) {
-			index2 = index(x1, x2-1);
-		} else {
-			index2 = index(x1, x2);
-		}
-	    s2 = states_[index2];
-
-		if (x1 < m_) {
-			index3 = index(x1+1, x2);
-		} else {
-			index3 = index(x1, x2);
-		}
-		s3 = states_[index3];
-
-		if (x2 < m_) {
-			index4 = index(x1, x2+1);
-		} else {
-			index4 = index(x1, x2);
-		}
-		s4 = states_[index4];
+		// find indices of all successors
+    index1 = (x1 > n_ ) ? index(x1-1, x2) : index(x1, x2);
+    index2 = (x2 > n_ ) ? index(x1, x2-1) : index(x1, x2);
+    index3 = (x1 < m_ ) ? index(x1+1, x2) : index(x1, x2);
+    index4 = (x2 < m_ ) ? index(x1, x2+1) : index(x1, x2);
 
 		if (x2 > n_ && x1 < m_) {
 		  index5 = index(x1+1, x2-1);
-		}
-		else {
+		} else {
 			if (x2 == n_ && x1 < m_) {
 				index5 = index(x1+1, x2);
 			}
@@ -201,14 +165,20 @@ space::iteration( int iter, int method, int Sx, int Sy )
 				index5 = index(x1, x2);
 			}
 		}
+
+    // Get successors
+    s1 = states_[index1];
+    s2 = states_[index2];
+		s3 = states_[index3];
+		s4 = states_[index4];
 		s5 = states_[index5];
 
 		double best_value = 1e50;
 
 		////////
-		if (x1 == 0)
+		if (x1 == 0) {
 			T1v = s->old_f() + B1;
-		else {
+		} else {
 			T1v = s1->old_f();
 		}
 
@@ -525,8 +495,7 @@ double space::T4V(int x1, int x2)
 	} else if (x2 > 0) {
 		return  min(curMin, states_[index(x1+1, x2-1)]->f());
 	} else {
-    cerr << "ERROR: x2 is less than zero" << endl;
-    return NAN; 
+    throw invalid_argument("x2 is less than zero");
   }
 
 }

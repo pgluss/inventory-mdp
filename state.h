@@ -3,8 +3,7 @@
 
 #include <vector>
 
-class state
-{
+class state {
 private:
 	int x1_;
 	int x2_;
@@ -28,8 +27,7 @@ public:
 	void modify_best_admission_action( int b) { best_admission_action_ = b; }
 };
 
-class space
-{
+class space {
 private:
 	int n_;
 	int m_;
