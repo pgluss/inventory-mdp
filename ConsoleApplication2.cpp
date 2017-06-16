@@ -1,3 +1,20 @@
+/*  Markov decision process simulation for UW Foster School of Business Research
+    Copyright (C) 2017 Jieling Han, Paula Gluss
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 // ConsoleApplication2.cpp : Defines the entry point for the console application.
 //
 
@@ -99,6 +116,7 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 	double error = 0.0;
 	double max_diff = 0.0;
 	double min_diff = 1000.0;
+
 	std::vector<state*>::iterator si;
 	int x1, x2;
 
@@ -108,13 +126,14 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 	
 	//std::cout << "Iteration " << iter << " starts..." << std::endl;
 
-	for ( si = states_.begin(); si != states_.end(); ++si ) {
+	for (si = states_.begin(); si != states_.end(); ++si) {
 		state *s = (*si);
 		x1 = s->x1();
 		x2 = s->x2();
 
-		if (x1 == 0 && x2 == 0)
+		if (x1 == 0 && x2 == 0) {
 			startingValue = s->f();
+    }
 
 		double old_value = s->old_f();
 	
@@ -154,16 +173,12 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 
 		if (x2 > n_ && x1 < m_) {
 		  index5 = index(x1+1, x2-1);
-		} else {
-			if (x2 == n_ && x1 < m_) {
-				index5 = index(x1+1, x2);
-			}
-			if (x2 > n_ && x1 == m_) {
-				index5 = index(x1, x2);
-			}
-			if (x2 == n_ && x1 == m_) {
-				index5 = index(x1, x2);
-			}
+		} else if (x2 == n_ && x1 < m_) {
+			index5 = index(x1+1, x2);
+		} else if (x2 > n_ && x1 == m_) {
+			index5 = index(x1, x2);
+		} else if (x2 == n_ && x1 == m_) {
+			index5 = index(x1, x2);
 		}
 
     // Get successors
@@ -176,18 +191,8 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		double best_value = 1e50;
 
 		////////
-		if (x1 == 0) {
-			T1v = s->old_f() + B1;
-		} else {
-			T1v = s1->old_f();
-		}
-
-		if (x2 == 0)
-			T2v = s->old_f() + B2;
-		else
-			T2v = s2->old_f();
-
-
+    T1v = (x1 == 0) ? s->old_f() + B1 : s1->old_f();
+    T2v = (x2 == 0) ? s->old_f() + B2 : s2->old_f();
 		T3v = s4->old_f();
 
 		// Update T4v
