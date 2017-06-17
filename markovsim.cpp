@@ -711,8 +711,7 @@ int space::testProperties()
 }
 
 
-int main (int argc, char * const argv[]) 
-{
+int main (int argc, char* const argv[]) {
 	clock_t starting;
 
 	char c;
@@ -721,255 +720,125 @@ int main (int argc, char * const argv[])
 
 	int sx = 0;
 	int sy = 0;
-	int fileIdx = 0; // fileIdx
+	int fileIdx = 0;
 
-	//double H1 = 2;
-	//double H2 = 1;
-	//double B1 = 500;
-	//double B2 = 250;
-	//double P1 = 0;
-	//double P2 = 0;
-	//double MU = 1;
-	//double LAMBDA1 = 0.8;
-	//double LAMBDA2 = 0.4;
-	//double DELTA = 0.45; 
-	//double ALPHA = 0;
-
-	//H2, MU fixed
+	double H1 = 2;
 	double H2 = 1;
-	double MU = 1;	
-
-	// B1 given, in this case
-	//double B1 = 105;
+	double B1 = 500;
+	double B2 = 250;
 	double P1 = 0;
 	double P2 = 0;
+	double MU = 1;
+	double LAMBDA1 = 0.8;
+	double LAMBDA2 = 0.4;
+	double DELTA = 0.45; 
 	double ALPHA = 0;
 
-	// store all the parameters into arrays
-	//array<double, 3> H1s = {1, 1.5, 2};
-	//array<double, 3> B1s = {4, 13.5, 198};
-	//array<double, 3> B2s = {4, 9, 99};
-	//array<double, 3> LAMBDA1s = {0.8, 0.9, 0.99};
-	//array<double, 3> LAMBDA2s = {0.2, 0.45, 0.74};
-	//array<double, 3> DELTAs = {0.15, 0.45, 0.93};
-
-	/*array<double, 1> H1s = {2};
-	array<double, 1> B1s = {5};
-	array<double, 1> B2s = {2.5};
-	array<double, 1> LAMBDA1s = {0.8};
-	array<double, 1> LAMBDA2s = {0.4};
-	array<double, 9> DELTAs ;
-	for (unsigned int kk = 0; kk < DELTAs.size(); kk++)
-		DELTAs[kk] = 0.1*(kk+1);*/
-
-	array<double, 1> H1s = {2};
-	array<double, 1> B1s = {500};
-	array<double, 7> B2s = {1,2,50,70, 100, 150, 250};
-	//array<double, 10> LAMBDA1s = {0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.94, 0.96, 0.98};
-	array<double, 1> LAMBDA1s = {0.8};
-	array<double, 1> LAMBDA2s = {0.4};
-	array<double, 1> DELTAs = {0.3};
-	
-
-	double H1, B1, B2, LAMBDA1, LAMBDA2, DELTA;
 	double optimalAvgCost, avgCostHeuristics, costIncrease;
 	double avgCostPre, avgCostCur;
 
-	ofstream heuristicsResultFile;
-	string filename = "HeuristicsResult.txt";
-	heuristicsResultFile.open (filename);
-	heuristicsResultFile << "HeuIdx	H1	H2	B1	B2	MU	LAMBDA1	LAMBDA2	DELTA	AVGCOST	%INCREASE	Sx	Sy	CalTime" << "\n";
+  // (Sx, Sy), method = 2 since there are two parameters
+  // (Sx, Sy=1) is a special case. Always produce from used, when there is any.
+  // (Sx, Sy=+inf) is a special case. Always produce from raw material.
 
-	for (unsigned int iH1s = 0; iH1s < H1s.size(); iH1s++) {
-		for (unsigned int iB1s = 0; iB1s < B1s.size(); iB1s++) {
-			for (unsigned int iB2s = 0; iB2s < B2s.size(); iB2s++) {
-				for (unsigned int iLAMBDA1s = 0; iLAMBDA1s < LAMBDA1s.size(); iLAMBDA1s++) {
-					for (unsigned int iLAMBDA2s = 0; iLAMBDA2s < LAMBDA2s.size(); iLAMBDA2s++) {
-						for (unsigned int iDETLAs = 0; iDETLAs < DELTAs.size(); iDETLAs++) {
-							H1 = H1s[iH1s];
-							B1 = B1s[iB1s];
-							B2 = B2s[iB2s];
-							LAMBDA1 = LAMBDA1s[iLAMBDA1s];
-							LAMBDA2 = LAMBDA2s[iLAMBDA2s];
-							DELTA = DELTAs[iDETLAs];
+  int sxOptimal;
+  int syOptimal;
 
-							for (method = 0; method <=2; method = method+2) {
-								if (method == 0) {
-									//startingValue = 0;
-									space *sp = new space(0, BOUND); 
+  fileIdx = 0;
 
-									//H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA
-									sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
-									sp->vi(method*10+fileIdx, method, sx, sy);
+  int sxMin = 1;
+  int sxMax = BOUND;
+  int syMin, syMax;
 
-									optimalAvgCost = avgCost;
-									delete sp;
-	
-									cout << "Optimal avg cost is " <<avgCost << endl;
-								}
+  starting = clock();
+  avgCostHeuristics = 10000;
 
-								// (Sx, Sy), method = 2 since there are two parameters
-								// (Sx, Sy=1) is a special case. Always produce from used, when there is any.
-								// (Sx, Sy=+inf) is a special case. Always produce from raw material.
-								if (method == 2) {
-									
-									int sxOptimal;
-									int syOptimal;
+  /* Assume the avg cost rate is convex in both x and y. Find sxOptimal and syOptimal by
+   * searching for the smallest x, such that f(x+1,y) >= f(x,y)
+   * Reset avgCostPre and avgCostCur before finding the optimal sy and sx
+   */
+  avgCostPre = avgCostCur = 10000; 
 
-									fileIdx = 0;
+  //First, find the optimal sx. With sy = syMin fixed.
+  for (sx = sxMin; sx <= sxMax; sx++ ) {
+    /* due to the orginal program, the starting point should be -1 such that the real states
+     * beginning from 0.
+     */
+    space *sp = new space(0, BOUND); 
 
-									int sxMin = 1;
-									int sxMax = BOUND;
-									int syMin, syMax;
+    //H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
+    sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
+    sp->vi(method*10+fileIdx, method, sx, syMin);
 
-									for (int heuIdx = 1; heuIdx <=1; heuIdx++) {
-										starting = clock();
-										avgCostHeuristics = 10000;
+    avgCostCur = avgCost;
+    delete sp;
 
-										if (heuIdx == 1) {
-											syMin = 1;
-											syMax = BOUND;
-										} // Sx, Sy
+    if ((avgCostCur < avgCostPre)) {
+      avgCostPre = avgCostCur;
+      if (sx == sxMin && sy == syMin) {
+        continue;
+      } else if (sx == sxMax) {
+        sxOptimal = sxMax;
+        //avgCostHeuristics = avgCostCur;
+        break;
+      } else {
+        continue;
+      }
+    } else {
+      sxOptimal = sx-1;
+      //avgCostHeuristics = avgCostPre;
+      break;
+    } 
 
-										if (heuIdx == 2) {
-											syMin = 1;
-											syMax = 1;
-										} // Sx, Sy=1 --> always produce from y
+  }
 
-										if (heuIdx == 3) {
-											syMin = 1000;
-											syMax = 1000;
-										} // Sx, Sy=inf --> always produce from raw
-	
-										cout << "Calculating H" << heuIdx << "...";
+  // Next, find the optimal sy
+  avgCostPre = avgCostCur = 10000; 
+  for (sy = syMin; sy <= syMax; sy++) {
 
-										/*
-										// Value iteration for heuristics with sx, sy. Brute Force
-										for (sx = sxMin; sx <= sxMax; sx++ ) {
-											for (sy = syMin; sy <= syMax; sy++) {
-							
-												space *sp = new space(0, 30); // due to the orginal program, the starting point should be -1 such that the real states begining from 0.
+    /* due to the orginal program, the starting point should be -1 such that the real states 
+     * beginning from 0.
+     */
+    space *sp = new space(0, BOUND);
 
-												//H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
-												sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
-												sp->vi(method*10+fileIdx, method, sx, sy);
+    //H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
+    sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
 
-												if (avgCost < avgCostHeuristics) {
-													avgCostHeuristics = avgCost;
-													sxOptimal = sx;
-													syOptimal = sy;
-												}
-												fileIdx++;
-												delete sp;
-											}
-										}
-										*/
+    sp->vi(method*10+fileIdx, method, sxOptimal, sy);						
+    avgCostCur = avgCost;
+    delete sp;
 
-	
-										// Assume the avg cost rate is convex in both x and y. Find sxOptima and syOptimal by search for the smallest x, s.t f(x+1,y)>=f(x,y)
-										// Reset avgCostPre and avgCostCur before finding the optimal sy and sx
-										avgCostPre = avgCostCur = 10000; 
+    if ((avgCostCur < avgCostPre)) {
+      avgCostPre = avgCostCur;
+      if (sy == syMin) {
+        continue;
+      } else if(sy == syMax) {
+        syOptimal = syMax;
+        avgCostHeuristics = avgCostCur;
+        break;
+      } else {
+        continue;
+      }
+    } else {
+      syOptimal = sy-1;
+      avgCostHeuristics = avgCostPre;
+      break;
+    } 
+  }			
 
-										//First, find the optimal sx. With sy = syMin fixed.
-										for (sx = sxMin; sx <= sxMax; sx++ ) {
-											space *sp = new space(0, BOUND); // due to the orginal program, the starting point should be -1 such that the real states begining from 0.
+  costIncrease = (avgCostHeuristics-optimalAvgCost)/optimalAvgCost;
+  if (costIncrease < 0)
+    //costIncrease = 0;
+    costIncrease = (optimalAvgCost-avgCostHeuristics)/avgCostHeuristics;
 
-											//H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
-											sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
-											sp->vi(method*10+fileIdx, method, sx, syMin);
-										
-											avgCostCur = avgCost;
-											delete sp;
+  //	cout << " (Sx,Sy, AvgCost) = "<< sxOptimal <<", " << syOptimal << "	" << avgCostHeuristics << ".	Time: " << clock()-starting << endl;
+  cout << H1 <<", " << H2 << ", " << B1 << ", " << B2;
+  cout << ", " << DELTA <<", " << avgCostHeuristics << ", ("  << sxOptimal << ", ";
+  cout << syOptimal <<") Time:" << double((clock()-starting)/1000) <<"s" << endl;
 
-											if ((avgCostCur < avgCostPre)) {
-												avgCostPre = avgCostCur;
-												if (sx == sxMin && sy == syMin) {
-													continue;
-												} else if (sx == sxMax) {
-													sxOptimal = sxMax;
-													//avgCostHeuristics = avgCostCur;
-													break;
-												} else {
-													continue;
-												}
-											} else {
-												sxOptimal = sx-1;
-												//avgCostHeuristics = avgCostPre;
-												break;
-											} 
-		
-										}
+  //cout << "Heuristics, optimal (sx, sy) is (" << sxOptimal << ", " << syOptimal << "); Avg cost is " << avgCostOptimal << endl;
+  //std::cin >> c;
 
-										// Next, find the optimal sy
-										avgCostPre = avgCostCur = 10000; 
-										for (sy = syMin; sy <= syMax; sy++) {
-
-											space *sp = new space(0, BOUND); // due to the orginal program, the starting point should be -1 such that the real states begining from 0.
-
-											//H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
-											sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
-
-											if (heuIdx != 1) {
-												if (heuIdx == 2) 
-													syOptimal = 1;	
-												else if (heuIdx == 3)
-													syOptimal = 1000;
-
-												sp->vi(method*10+fileIdx, method, sxOptimal, syOptimal);						
-												avgCostHeuristics = avgCost;
-												delete sp;
-												break;
-											} else {
-												sp->vi(method*10+fileIdx, method, sxOptimal, sy);						
-												avgCostCur = avgCost;
-												delete sp;
-										
-												if ((avgCostCur < avgCostPre)) {
-													avgCostPre = avgCostCur;
-													if (sy == syMin) {
-														continue;
-													} else if(sy == syMax) {
-														syOptimal = syMax;
-														avgCostHeuristics = avgCostCur;
-														break;
-													} else {
-														continue;
-													}
-												} else {
-													syOptimal = sy-1;
-													avgCostHeuristics = avgCostPre;
-													break;
-												} 
-											}
-										}			
-
-										costIncrease = (avgCostHeuristics-optimalAvgCost)/optimalAvgCost;
-										if (costIncrease < 0)
-											//costIncrease = 0;
-											costIncrease = (optimalAvgCost-avgCostHeuristics)/avgCostHeuristics;
-
-									//	cout << " (Sx,Sy, AvgCost) = "<< sxOptimal <<", " << syOptimal << "	" << avgCostHeuristics << ".	Time: " << clock()-starting << endl;
-										cout << heuIdx	<<	", " << H1 <<", " << H2 << ", " << B1 << ", " << B2 << ", " << DELTA <<", " << avgCostHeuristics << ", ("  << sxOptimal << ", " << syOptimal <<") Time:" << double((clock()-starting)/1000) <<"s \n";
-										heuristicsResultFile << heuIdx	<<	"	" << H1 <<"	" << H2 << "	" << B1 << "	" << B2 << "	" << MU << "	" << LAMBDA1 << "	" << LAMBDA2 << "	" << DELTA <<"	" << avgCostHeuristics << "	" << costIncrease << "	" << sxOptimal << "	" << syOptimal << "	" << double((clock()-starting)/1000) << "\n";
-
-									}
-		
-									//cout << "Heuristics, optimal (sx, sy) is (" << sxOptimal << ", " << syOptimal << "); Avg cost is " << avgCostOptimal << endl;
-									//std::cin >> c;
-								}
-								
-
-							}
-						}
-
-					}	
-				}
-			}
-		}
-	}
-
-
-	heuristicsResultFile.close();
 	cout << "Complete!!" << endl;
 	return 0;
 }
