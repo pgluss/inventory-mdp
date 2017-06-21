@@ -61,18 +61,22 @@ double startingValue;
 double avgCost;
 int BOUND = 40;
 
+/* Calculates inventory cost rate function h(X(t))
+ * Args:
+ *     x1 = new inventory
+ *     x2 = used inventory
+ * See Ha pg. 43
+ */
 double space::h(int x1, int x2) {
 	double currentH = 0;
 	if (x1 < 0) {
-		x1 = -x1;
-		currentH += x1 * B1;
+		currentH += -x1 * B1;
 	} else {
 		currentH += x1 * H1;
   }
 
 	if (x2 < 0)	{
-		x2 = -x2;
-		currentH += x2 * B2;
+		currentH += -x2 * B2;
 	} else {
 		currentH += x2 * H2;
   }
@@ -112,6 +116,10 @@ long space::index(int x1, int x2) {
 	return (x2 - n_) + ((x1 - n_) * (m_ - n_ + 1));
 }
 
+/* 
+ * Args:
+ *     Sx and Sy are starting inventory for new and used product 
+ */
 double space::iteration(int iter, int method, int Sx, int Sy) {
 	double error = 0.0;
 	double max_diff = 0.0;
@@ -166,11 +174,12 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 
 
 		// find indices of all successors
-    index1 = (x1 > n_ ) ? index(x1-1, x2) : index(x1, x2);
-    index2 = (x2 > n_ ) ? index(x1, x2-1) : index(x1, x2);
-    index3 = (x1 < m_ ) ? index(x1+1, x2) : index(x1, x2);
-    index4 = (x2 < m_ ) ? index(x1, x2+1) : index(x1, x2);
+    index1 = (x1 > n_ ) ? index(x1-1, x2) : index(x1, x2); // decrease new inventory by 1
+    index2 = (x2 > n_ ) ? index(x1, x2-1) : index(x1, x2); // decrease used inventory by 1
+    index3 = (x1 < m_ ) ? index(x1+1, x2) : index(x1, x2); // increase new invectory by 1
+    index4 = (x2 < m_ ) ? index(x1, x2+1) : index(x1, x2); // increase used inventory by 1
 
+    // increase new inventory by 1 and decrease used inventory by 1. Handle boundary conditions
 		if (x2 > n_ && x1 < m_) {
 		  index5 = index(x1+1, x2-1);
 		} else if (x2 == n_ && x1 < m_) {
@@ -247,19 +256,16 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 			}
 		}
 		////////
-
+    // V(s) <- max over actions
 		value = (h( x1, x2 ) + LAMBDA1 * T1v + LAMBDA2 * T2v + DELTA * T3v + MU * T4v)/NORMALIZECOST;
 
 		s->change_value( value );
 
 		double diff = fabs(value - old_value);
 
-		if (diff > max_diff) {
-			max_diff = diff;
-		}
-		if (diff < min_diff) {
-			min_diff = diff;
-		}
+		if (diff > max_diff) max_diff = diff;
+
+		if (diff < min_diff) min_diff = diff;
 
 	}
 	//std::cout << "Iteration " << iter << " " << initial_->f() << " ends. max diff: " << max_diff << " min diff: " << min_diff << std::endl;
@@ -378,29 +384,15 @@ space::printSwitching(int fileIdx)
 	return 1;
 }
 
-int
-space::vi( int fileIndex, int method, int sx, int sy )
-{
+int space::vi(int fileIndex, int method, int sx, int sy) {
 	int iter = 0;
 	double error = 1.0;
 
-	if (method == 0) {
-		// Value iteration for optimal cost function
-		while ( error > EPSILON && iter < MAXITER) {
-			error = iteration( ++iter, method, 0, 0 );
-		}
-		printAll(fileIndex);
-		printSwitching(fileIndex);
-		cout << "Optimal value function. Avg cost is " << avgCost << endl ;
-	} else if (method == 2) {
-		while ( error > EPSILON && iter < MAXITER) {
-			error = iteration( ++iter, method, sx, sy );
-		}
-		//cout << "(sx,sy) = " << sx << ", " << sy << "; Heuristics avg cost is ";
-	}
-	//cout << avgCost << endl;
-
-	return iter;
+  // Value iteration for optimal cost function
+  while (error > EPSILON && iter < MAXITER) {
+    error = iteration(++iter, method, sx, sy);
+  }
+  return iter;
 }
 
 //For testing the properties
@@ -722,17 +714,17 @@ int main (int argc, char* const argv[]) {
 	int sy = 0;
 	int fileIdx = 0;
 
-	double H1 = 2;
-	double H2 = 1;
-	double B1 = 500;
-	double B2 = 250;
+	double H1 = 3;
+	double H2 = 2;
+	double B1 = 80;
+	double B2 = 100;
 	double P1 = 0;
 	double P2 = 0;
 	double MU = 1;
-	double LAMBDA1 = 0.8;
-	double LAMBDA2 = 0.4;
-	double DELTA = 0.45; 
-	double ALPHA = 0;
+	double LAMBDA1 = 0.4;
+	double LAMBDA2 = 0.5;
+	double DELTA = 1; 
+	double ALPHA = 0.05;
 
 	double optimalAvgCost, avgCostHeuristics, costIncrease;
 	double avgCostPre, avgCostCur;
@@ -760,7 +752,7 @@ int main (int argc, char* const argv[]) {
   avgCostPre = avgCostCur = 10000; 
 
   //First, find the optimal sx. With sy = syMin fixed.
-  for (sx = sxMin; sx <= sxMax; sx++ ) {
+  //for (sx = sxMin; sx <= sxMax; sx++ ) {
     /* due to the orginal program, the starting point should be -1 such that the real states
      * beginning from 0.
      */
@@ -768,9 +760,10 @@ int main (int argc, char* const argv[]) {
 
     //H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
     sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
-    sp->vi(method*10+fileIdx, method, sx, syMin);
+    //sp->vi(method*10+fileIdx, method, sx, syMin);
 
-    avgCostCur = avgCost;
+    sp->vi(method*10+fileIdx, method, 4, 9);
+    /*avgCostCur = avgCost;
     delete sp;
 
     if ((avgCostCur < avgCostPre)) {
@@ -790,16 +783,16 @@ int main (int argc, char* const argv[]) {
       break;
     } 
 
-  }
+  }*/
 
   // Next, find the optimal sy
-  avgCostPre = avgCostCur = 10000; 
-  for (sy = syMin; sy <= syMax; sy++) {
+  //avgCostPre = avgCostCur = 10000; 
+  //for (sy = syMin; sy <= syMax; sy++) {
 
     /* due to the orginal program, the starting point should be -1 such that the real states 
      * beginning from 0.
      */
-    space *sp = new space(0, BOUND);
+  /*  space *sp = new space(0, BOUND);
 
     //H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
     sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
@@ -829,16 +822,18 @@ int main (int argc, char* const argv[]) {
   costIncrease = (avgCostHeuristics-optimalAvgCost)/optimalAvgCost;
   if (costIncrease < 0)
     //costIncrease = 0;
-    costIncrease = (optimalAvgCost-avgCostHeuristics)/avgCostHeuristics;
+    costIncrease = (optimalAvgCost-avgCostHeuristics)/avgCostHeuristics; */
 
   //	cout << " (Sx,Sy, AvgCost) = "<< sxOptimal <<", " << syOptimal << "	" << avgCostHeuristics << ".	Time: " << clock()-starting << endl;
-  cout << H1 <<", " << H2 << ", " << B1 << ", " << B2;
+  /*cout << H1 <<", " << H2 << ", " << B1 << ", " << B2;
   cout << ", " << DELTA <<", " << avgCostHeuristics << ", ("  << sxOptimal << ", ";
   cout << syOptimal <<") Time:" << double((clock()-starting)/1000) <<"s" << endl;
-
+  */
   //cout << "Heuristics, optimal (sx, sy) is (" << sxOptimal << ", " << syOptimal << "); Avg cost is " << avgCostOptimal << endl;
   //std::cin >> c;
 
+  cout << "sxOptimal: " << sxOptimal << " syOptimal: " << syOptimal << endl;
+  cout << "v(0,0): " << sp->v(0,0) << endl;
 	cout << "Complete!!" << endl;
 	return 0;
 }

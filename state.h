@@ -22,8 +22,8 @@
 
 class state {
 private:
-	int x1_;
-	int x2_;
+	int x1_; // inventory of new product
+	int x2_; // invectory of used product
 	double f_;
 	double old_f_;
 	int best_action_;
@@ -70,14 +70,29 @@ private:
 
 public:
 	space( int, int );
-    long index( int, int );
+  long index( int, int );
 	double iteration( int, int, int, int );
 	int vi( int, int, int, int);
 	int printAll(int);
 	int printSwitching(int);
-	int setParameters(double h1, double h2, double mu, double b1, double b2, double p1, double p2, double lambda1, double lambda2,
-		double delta, double alpha){H1=h1; H2=h2; MU=mu; B1=b1; B2=b2; P1=p1; P2=p2; LAMBDA1=lambda1; LAMBDA2=lambda2; DELTA=delta; ALPHA=alpha; 
-		NORMALIZECOST=LAMBDA1+LAMBDA2+DELTA+MU+ALPHA; EPSILON=1e-6; MAXITER=1e6; return 1;}
+	void setParameters(double h1, double h2, double mu, double b1, double b2,
+                     double p1, double p2, double lambda1, double lambda2,
+		                 double delta, double alpha) {
+    H1=h1;
+    H2=h2;
+    MU=mu;
+    B1=b1;
+    B2=b2; 
+    P1=p1; 
+    P2=p2; 
+    LAMBDA1=lambda1; 
+    LAMBDA2=lambda2; 
+    DELTA=delta; 
+    ALPHA=alpha; 
+		NORMALIZECOST=LAMBDA1+LAMBDA2+DELTA+MU+ALPHA;
+    EPSILON=1e-6;
+    MAXITER=1e6;
+  }
 
 	//for cost rate
 	double h( int x1, int x2 );
