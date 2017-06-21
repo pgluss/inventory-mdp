@@ -84,28 +84,30 @@ double space::h(int x1, int x2) {
 	return currentH;
 }
 
-/* Constructs a new space object
+/* Constructs a new space object and initializes a state for every possible combination of 
+ * inventory levels from n to m for each of new and used product
  * 
- * Takes two ints n and m
+ * Args:
+ *     n - minimum possible inventory level in simulation
+ *     m - maximum possible inventory level in simulation
  */
 space::space(int n, int m) : n_(n), m_(m) {
-	int k = 0;
-
 	for (int i = n; i <= m; ++i ) {
 		for (int j = n; j <= m; ++j ) {
 			// add boundary conditions here
-			state *s = new state( i, j);
-			// state *s = new state( i, j, 100);
+			state* s = new state(i, j);
 			states_.push_back(s);
+
 			if ( i == 0 && j == 0 ) {
 				initial_ = s;
       }
-			++k;
 		}
 	}
-	//std::cout << k << " states were generated\n";
 }
 
+/*
+ *
+ */
 long space::index(int x1, int x2) {
   if (x1 < n_) x1 = n_ ;
 	if (x1 > m_) x1 = m_ ;
@@ -132,9 +134,7 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 	double best_value_T2 = 0; 
 	double best_value_T4 = 0;
 	
-	//std::cout << "Iteration " << iter << " starts..." << std::endl;
-
-	for (si = states_.begin(); si != states_.end(); ++si) {
+	for ( si = states_.begin(); si != states_.end(); ++si ) {
 		state *s = (*si);
 		x1 = s->x1();
 		x2 = s->x2();
@@ -704,8 +704,6 @@ int space::testProperties()
 
 
 int main (int argc, char* const argv[]) {
-	clock_t starting;
-
 	char c;
 	
 	int method = 2;
@@ -742,7 +740,6 @@ int main (int argc, char* const argv[]) {
   int sxMax = BOUND;
   int syMin, syMax;
 
-  starting = clock();
   avgCostHeuristics = 10000;
 
   /* Assume the avg cost rate is convex in both x and y. Find sxOptimal and syOptimal by
