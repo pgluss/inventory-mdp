@@ -57,7 +57,6 @@
 
 using namespace std;
 
-double startingValue;
 double avgCost;
 int BOUND = 40;
 
@@ -105,8 +104,7 @@ space::space(int n, int m) : n_(n), m_(m) {
 	}
 }
 
-/*
- *
+/* Returns the state corresponding to product inventories x1 and x2
  */
 long space::index(int x1, int x2) {
   if (x1 < n_) x1 = n_ ;
@@ -138,10 +136,6 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		state *s = (*si);
 		x1 = s->x1();
 		x2 = s->x2();
-
-		if (x1 == 0 && x2 == 0) {
-			startingValue = s->f();
-    }
 
 		double old_value = s->old_f();
 	
