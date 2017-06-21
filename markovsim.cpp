@@ -54,6 +54,7 @@
 #include <fstream>
 #include <array>
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -205,21 +206,16 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		// method = 2: Sx, Sy two thresholds
 		if (method == 0) {
 			// First, test when x2 == 0
-			if (s->old_f() < s3->old_f())
-			{
+			if (s->old_f() < s3->old_f())	{
 				T4v = s->old_f();
 				s->modify_best_action(0);
-			}
-			else
-			{
+			} else {
 				T4v = s3->old_f();
 				s->modify_best_action(1); // produce x from raw material
 			}
 
-			if (x2 > 0)
-			{
-				if (s5->old_f() < T4v)
-				{
+			if (x2 > 0) {
+				if (s5->old_f() < T4v) {
 					s->modify_best_action(2); // produce x from y
 					T4v = s5->old_f();
 				}
@@ -251,7 +247,15 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		}
 		////////
     // V(s) <- max over actions
-		value = (h( x1, x2 ) + LAMBDA1 * T1v + LAMBDA2 * T2v + DELTA * T3v + MU * T4v)/NORMALIZECOST;
+		//value = (h(x1, x2) + LAMBDA1 * T1v + LAMBDA2 * T2v + DELTA * T3v + MU * T4v)/NORMALIZECOST;
+    double test1 = (MU + DELTA)*s->old_f();
+    double test2 = MU*s3->old_f() + DELTA*s->old_f();
+    double test3 = DELTA*s4->old_f() + MU*s->old_f();
+
+    double minimum = min(test1, test2);
+           minimum = min(minimum, test3);
+
+    value = h(x1, x2) + LAMBDA1*s1->old_f() + LAMBDA2*s2->old_f() + minimum;
 
 		s->change_value( value );
 
