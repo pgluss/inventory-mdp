@@ -248,9 +248,9 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		////////
     // V(s) <- max over actions
 		//value = (h(x1, x2) + LAMBDA1 * T1v + LAMBDA2 * T2v + DELTA * T3v + MU * T4v)/NORMALIZECOST;
-    double test1 = (MU + DELTA)*s->old_f();
-    double test2 = MU*s3->old_f() + DELTA*s->old_f();
-    double test3 = DELTA*s4->old_f() + MU*s->old_f();
+    double test1 = (MU + DELTA)*(s->old_f());
+    double test2 = MU*(s3->old_f()) + DELTA*(s->old_f());
+    double test3 = DELTA*(s4->old_f()) + MU*(s->old_f());
 
     double minimum = min(test1, test2);
            minimum = min(minimum, test3);
@@ -264,7 +264,7 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		if (diff > max_diff) max_diff = diff;
 
 		if (diff < min_diff) min_diff = diff;
-
+    
 	}
 	//std::cout << "Iteration " << iter << " " << initial_->f() << " ends. max diff: " << max_diff << " min diff: " << min_diff << std::endl;
 
@@ -275,12 +275,11 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 	}
 
 	avgCost = max_diff;
+  cout << max_diff << endl;
 	return max_diff - min_diff;
 }
 
-int 
-space::printAll(int fileIdx)
-{
+int space::printAll(int fileIdx) {
 	
 	ofstream myfile, myfile1;
 	string filename1 = "Avg_allResult" + to_string(fileIdx) + ".txt";
@@ -321,9 +320,7 @@ space::printAll(int fileIdx)
 	return 1;
 }
 
-int
-space::printSwitching(int fileIdx)
-{
+int space::printSwitching(int fileIdx) {
 	
 	ofstream myfile;
 	string filename;
