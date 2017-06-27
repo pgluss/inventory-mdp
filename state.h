@@ -52,11 +52,11 @@ private:
 	std::vector<state*> states_;
 
 	//parameters
-	double H1; // NEW
-	double H2; // OLD
+	double H1; // Holding cost for new product
+	double H2; // Holding cost for used product
 	double MU; // PRODUCTION
-	double B1; // LOST SALES FOR NEW
-	double B2; // LOST SALES FOR OLD
+	double B1; // Back order for new product
+	double B2; // Back order for used product
 	double P1; // PRODUCTION COST FOR NEW
 	double P2; // PRODUCTION COST FOR OLD
 	double LAMBDA1; // NEW
@@ -90,7 +90,7 @@ public:
     DELTA=delta; 
     ALPHA=alpha; 
 		NORMALIZECOST=LAMBDA1+LAMBDA2+DELTA+MU+ALPHA;
-    EPSILON=1e-6;
+    EPSILON=1e-15;
     MAXITER=1e6;
   }
 

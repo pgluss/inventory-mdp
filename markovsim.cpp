@@ -95,7 +95,7 @@ space::space(int n, int m) : n_(n), m_(m) {
 	for (int i = n; i <= m; ++i ) {
 		for (int j = n; j <= m; ++j ) {
 			// add boundary conditions here
-			state* s = new state(i, j);
+			state* s = new state(i, j, 2000);
 			states_.push_back(s);
 
 			if ( i == 0 && j == 0 ) {
@@ -167,6 +167,36 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		//	continue;
 		//}
 
+
+    // Boundary conditions for Ha's paper (P.Gluss)
+
+    if (x1 == m_) {
+       s1 = states_[index(m_ - 1, x2)];
+       value = s1->old_f() + H1/ALPHA;
+       s->change_value(value);
+       continue;
+    }
+
+    if (x2 == m_) {
+       s1 = states_[index(x1, m_ - 1)];
+       value = s1->old_f() + H2/ALPHA;
+       s->change_value(value);
+       continue;
+    }
+
+    if (x1 == n_) {
+      s1 = states_[index(n_ + 1, x2)];
+      value = s1->old_f() + B1/ALPHA;
+      s->change_value(value);
+      continue;
+    }
+
+    if (x2 == n_) {
+       s1 = states_[index(x1, n_ + 1)];
+       value = s1->old_f() + B2/ALPHA;
+       s->change_value(value);
+       continue;
+    }
 
 		// find indices of all successors
     index1 = (x1 > n_ ) ? index(x1-1, x2) : index(x1, x2); // decrease new inventory by 1
@@ -248,14 +278,14 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		////////
     // V(s) <- max over actions
 		//value = (h(x1, x2) + LAMBDA1 * T1v + LAMBDA2 * T2v + DELTA * T3v + MU * T4v)/NORMALIZECOST;
-    double test1 = (MU + DELTA)*(s->old_f());
-    double test2 = MU*(s3->old_f()) + DELTA*(s->old_f());
-    double test3 = DELTA*(s4->old_f()) + MU*(s->old_f());
+    double test1 = (s->old_f());
+    double test2 = (s3->old_f());
+    double test3 = (s4->old_f());
 
     double minimum = min(test1, test2);
            minimum = min(minimum, test3);
 
-    value = h(x1, x2) + LAMBDA1*s1->old_f() + LAMBDA2*s2->old_f() + minimum;
+    value = (h(x1, x2) + LAMBDA1*s1->old_f() + LAMBDA2*s2->old_f() + MU*minimum) / NORMALIZECOST;
 
 		s->change_value( value );
 
@@ -266,7 +296,6 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 		if (diff < min_diff) min_diff = diff;
     
 	}
-	//std::cout << "Iteration " << iter << " " << initial_->f() << " ends. max diff: " << max_diff << " min diff: " << min_diff << std::endl;
 
 	//replace all the old_f_ with f_
 	for ( si = states_.begin(); si != states_.end(); ++si ) {
@@ -275,7 +304,6 @@ double space::iteration(int iter, int method, int Sx, int Sy) {
 	}
 
 	avgCost = max_diff;
-  cout << max_diff << endl;
 	return max_diff - min_diff;
 }
 
@@ -698,7 +726,7 @@ int space::testProperties()
 }
 
 
-int main (int argc, char* const argv[]) {
+int main(int argc, char* const argv[]) {
 	char c;
 	
 	int method = 2;
@@ -748,13 +776,13 @@ int main (int argc, char* const argv[]) {
     /* due to the orginal program, the starting point should be -1 such that the real states
      * beginning from 0.
      */
-    space *sp = new space(0, BOUND); 
+    space *sp = new space(-15, 15); 
 
     //H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, 
     sp->setParameters(H1, H2, MU, B1, B2, P1, P2, LAMBDA1, LAMBDA2, DELTA, ALPHA);
     //sp->vi(method*10+fileIdx, method, sx, syMin);
 
-    sp->vi(method*10+fileIdx, method, 4, 9);
+    sp->vi(method*10+fileIdx, method, 0, 0);
     /*avgCostCur = avgCost;
     delete sp;
 
@@ -826,6 +854,13 @@ int main (int argc, char* const argv[]) {
 
   cout << "sxOptimal: " << sxOptimal << " syOptimal: " << syOptimal << endl;
   cout << "v(0,0): " << sp->v(0,0) << endl;
+  cout << "v(-1,0): " << sp->v(-1,0) << endl;
+  cout << "v(0,-1): " << sp->v(0,-1) << endl;
+  cout << "v(1,0): " << sp->v(1,0) << endl;
+  cout << "v(0,1): " << sp->v(0,1) << endl;
+  cout << "L1: " << LAMBDA1 << endl;
+  cout << "L2: " << LAMBDA2 << endl;
+  cout << "Mu: " << MU << endl;
 	cout << "Complete!!" << endl;
 	return 0;
 }
