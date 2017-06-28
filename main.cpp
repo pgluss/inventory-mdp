@@ -6,17 +6,17 @@
 int main() {
 
   // Intialize simulation for n to m
-  Space* s = new Space(-20, 20);
+  Space* s = new Space(20);
 
   // Set parameters
-  s->mu1 = 1;
-  s->mu2 = 1;
-  s->lambda1 = 0.4;
-  s->lambda2 = 0.5;
-  s->h1 = 3;
-  s->h2 = 2;
-  s->b1 = 80;
-  s->b2 = 100;
+  s->mu = 1;
+  s->delta = 1;
+  s->lambdax = 0.4;
+  s->lambday = 0.5;
+  s->hx = 3;
+  s->hy = 2;
+  s->cx = 80;
+  s->cy = 100;
   s->alpha = 0.05;
 
   // Perform value iteration

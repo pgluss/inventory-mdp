@@ -2,11 +2,11 @@
 #define STATE_H
 
 struct State {
-  int x1;
-  int x2;
+  int x;
+  int y;
   double f; 
 
-  State(int x1, int x2, double f) {this->x1 = x1; this->x2 = x2; this->f = f;}
+  State(int x, int y, double f) : x(x), y(y), f(f) {}
   State() { }
  
 };
