@@ -3,6 +3,7 @@
 
 #include "state.hpp"
 #include <vector>
+#include <iostream>
 
 class Space {
 private:
@@ -31,7 +32,10 @@ public:
   State& state(unsigned int x, unsigned int y);
 
   // Perform value iteration
-  double vi(double thresh, unsigned int maxIter);
+  double vi(double thresh, double maxIter);
+
+  // Print out decisions
+  void decide(std::string filename);
 };
 
 #endif
