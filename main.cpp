@@ -13,14 +13,16 @@ int main() {
   s->mu2 = 1;
   s->lambda1 = 0.4;
   s->lambda2 = 0.5;
-  s->h1 = 3;
-  s->h2 = 2;
-  s->b1 = 80;
-  s->b2 = 100;
-  s->alpha = 0.05;
+  s->h1 = 1;
+  s->h2 = 1;
+  s->b1 = 30;
+  s->b2 = 40;
+  s->alpha = 0.01;
 
   // Perform value iteration
   double error = s->vi(1e-5, 1e6);
+
+  s->decide("haTest");
 
   std::cout << "Error = " << error << std::endl;
   std::cout << s->state(0,0).f << std::endl;

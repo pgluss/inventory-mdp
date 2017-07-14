@@ -36,6 +36,9 @@ public:
 
   // Perform value iteration
   double vi(double thresh, unsigned int maxIter);
+
+  // Get decisions
+  void decide(std::string filename);
 };
 
 #endif

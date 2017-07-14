@@ -1,6 +1,8 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <string>
 
 #include "space.hpp"
 
@@ -65,4 +67,41 @@ double Space::vi(double thresh, unsigned int maxIter) {
     error = localError;
   }
   return error;
+}
+
+enum {
+  NoProduce = 0,
+  ProduceX1 = 1,
+  ProduceX2 = 2
+};
+
+void Space::decide(std::string filename) {
+  std::ofstream file(filename);
+
+  file << "x1\t" << "x2\t" << "f-value\t" << "decision" << std::endl;
+
+  for (State& s: this->states_) {
+    int x1 = s.x1;
+    int x2 = s.x2;
+
+    if (x1 == m_ || x2 == m_) {
+      continue;
+    }
+
+    file << x1 << "\t" << x2 << "\t" << s.f << "\t";
+
+    double f1 = s.f;                       //NoProduce f-val
+    double f2 = this->state(x1 + 1, x2).f; //ProduceX1 f-val
+    double f3 = this->state(x1, x2 + 1).f; //ProduceX2 f-val
+
+    if (f1 < f2 && f1 < f3) {
+      file << NoProduce << std::endl;
+    } else if (f2 < f1 && f2 < f3) {
+      file << ProduceX1 << std::endl;
+    } else {
+      file << ProduceX2 << std::endl;
+    }
+
+  }
+  file.close();
 }
