@@ -1,14 +1,13 @@
 #ifndef SPACE_H
 #define SPACE_H
 
-#include "state.hpp"
 #include <vector>
 
 class Space {
 private:
   int n_;
   int m_;
-  std::vector<State> states_;
+  std::vector<float> fvals_;
 
 public:
   double lambda1;
@@ -29,7 +28,7 @@ public:
   Space(int n, int m);
 
   // Gets the State at the given indices (by reference)
-  State& state(int x1, int x2);
+  float& f(int x1, int x2);
 
   // Calculates inventory cost function
   double h(int x1, int x2);

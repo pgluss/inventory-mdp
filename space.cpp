@@ -13,16 +13,16 @@ Space::Space(int n, int m) {
   // Initialize all states
   for (int i = n; i <= m; i++) {
     for (int j = n; j <= m; j++) {
-      this->states_.push_back(State(i,j,0));
+      this->fvals_.push_back(0);
     }
   }
 }
 
-State& Space::state(int x1, int x2) {
+float& Space::f(int x1, int x2) {
   x1 = x1 - this->n_;
   x2 = x2 - this->n_;
   int index = x1*(m_ - n_ + 1) + x2;
-  return this->states_[index];
+  return this->fvals_[index];
 }
 
 double Space::h(int x1, int x2) {
@@ -37,33 +37,35 @@ double Space::vi(double thresh, unsigned int maxIter) {
   int i = 0;
   while (error > thresh && i++ < maxIter) {
     double localError = 0;
-    for (State& s: this->states_) {
-      int x1 = s.x1;
-      int x2 = s.x2;
-      double old_f = s.f;
 
-      if (x1 == m_) {
-        s.f = this->state(x1-1, x2).f + h1/alpha;
-      } else if (x2 == m_) {
-        s.f = this->state(x1, x2-1).f + h2/alpha;
-      } else if (x1 == n_) {
-        s.f = this->state(x1+1, x2).f + b1/alpha;
-      } else if (x2 == n_) {
-        s.f = this->state(x1, x2+1).f + b2/alpha;
-      } else {
-        double f1 = this->state(x1-1, x2).f;
-        double f2 = this->state(x1, x2-1).f;
-        double f3 = this->state(x1+1, x2).f;
-        double f4 = this->state(x1, x2+1).f;
+    for (int x1 = this->n_; x1 <= m_; x1++) {
+      for (int x2 = this->n_; x2 <= m_; x2++) {
+        double old_f = f(x1, x2);
 
-        double minimum = std::min(s.f, f3);
-        minimum = std::min(minimum, f4);
+        if (x1 == m_) {
+          f(x1,x2) = f(x1-1, x2) + h1/alpha;
+        } else if (x2 == m_) {
+          f(x1,x2) = f(x1, x2-1) + h2/alpha;
+        } else if (x1 == n_) {
+          f(x1,x2) = f(x1+1, x2) + b1/alpha;
+        } else if (x2 == n_) {
+          f(x1,x2) = f(x1, x2+1) + b2/alpha;
+        } else {
+          float f1 = f(x1-1, x2);
+          float f2 = f(x1, x2-1);
+          float f3 = f(x1+1, x2);
+          float f4 = f(x1, x2+1);
 
-        s.f = (h(x1,x2) + lambda1*f1 + lambda2*f2 + mu1*minimum) / (mu1 + lambda1 + lambda2 + alpha);
+          float minimum = std::min(f(x1,x2), f3);
+          minimum = std::min(minimum, f4);
+
+          f(x1,x2) = (h(x1,x2) + lambda1*f1 + lambda2*f2 + mu1*minimum) / (mu1 + lambda1 + lambda2 + alpha);
+        }
+
+        localError = std::max(localError, std::fabs(f(x1,x2) - old_f));
       }
+    }
 
-      localError = std::max(localError, std::fabs(s.f - old_f));
-    }    
     error = localError;
   }
   return error;
@@ -80,28 +82,27 @@ void Space::decide(std::string filename) {
 
   file << "x1\t" << "x2\t" << "f-value\t" << "decision" << std::endl;
 
-  for (State& s: this->states_) {
-    int x1 = s.x1;
-    int x2 = s.x2;
+  for (int x1 = this->n_; x1 <= m_; x1++) {
+    for (int x2 = this->n_; x2 <= m_; x2++) {
+      
+      if (x1 == m_ || x2 == m_) {
+        continue;
+      }
 
-    if (x1 == m_ || x2 == m_) {
-      continue;
+      file << x1 << "\t" << x2 << "\t" << f(x1,x2) << "\t";
+
+      double f1 = f(x1,x2);      //NoProduce f-val
+      double f2 = f(x1 + 1, x2); //ProduceX1 f-val
+      double f3 = f(x1, x2 + 1); //ProduceX2 f-val
+
+      if (f1 < f2 && f1 < f3) {
+        file << NoProduce << std::endl;
+      } else if (f2 < f1 && f2 < f3) {
+        file << ProduceX1 << std::endl;
+      } else {
+        file << ProduceX2 << std::endl;
+      }
     }
-
-    file << x1 << "\t" << x2 << "\t" << s.f << "\t";
-
-    double f1 = s.f;                       //NoProduce f-val
-    double f2 = this->state(x1 + 1, x2).f; //ProduceX1 f-val
-    double f3 = this->state(x1, x2 + 1).f; //ProduceX2 f-val
-
-    if (f1 < f2 && f1 < f3) {
-      file << NoProduce << std::endl;
-    } else if (f2 < f1 && f2 < f3) {
-      file << ProduceX1 << std::endl;
-    } else {
-      file << ProduceX2 << std::endl;
-    }
-
   }
   file.close();
 }

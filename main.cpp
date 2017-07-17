@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "space.hpp"
-#include "state.hpp"
 
 int main() {
 
@@ -25,6 +24,6 @@ int main() {
   s->decide("haTest");
 
   std::cout << "Error = " << error << std::endl;
-  std::cout << s->state(0,0).f << std::endl;
+  std::cout << s->f(0,0) << std::endl;
   return 0;
 }
