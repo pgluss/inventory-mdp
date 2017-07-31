@@ -10,6 +10,7 @@ The basic model is in C++ and the other models are written in D.
 1. Install D
     1. Download Windows installer from [here](http://downloads.dlang.org/releases/2.x/2.075.0/dmd-2.075.0.exe)
 	2. Double click the downloaded executible to install
+    3. Choose "no" and do not install 64-bit support (You might need 64-bit support for very large state spaces)
 2. Download source
 	1. Download it [here](https://github.com/pgluss/inventory-mdp/archive/master.zip)
 	2. Unzip the downloaded file
