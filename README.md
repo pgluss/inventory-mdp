@@ -26,3 +26,10 @@ The basic model is in C++ and the other models are written in D.
 
 ## Modifying Parameters
 
+The parameters of the model are declared at the beginning of each file. To modify them, open up 
+the file in a text editor and directly modify the values. Rerunning the code as described above 
+will automatically compile and use the new parameters.
+
+## Model Outputs
+
+To do!
