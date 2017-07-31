@@ -33,3 +33,10 @@ will automatically compile and use the new parameters.
 ## Model Outputs
 
 To do!
+
+## To Do
+
+- [ ] Update boundary conditions
+- [ ] Implement new lower boundary on N in the extended model
+- [ ] Implement text file outputs for data analysis
+- [ ] Move basic model from C++ to D
