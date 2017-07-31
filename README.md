@@ -37,7 +37,12 @@ To do!
 
 ## To Do
 
+
 - [ ] Update boundary conditions
 - [ ] Implement new lower boundary on N in the extended model
-- [ ] Implement text file outputs for data analysis
+- [ ] Implement CSV file outputs for data analysis in Excel and R
 - [ ] Move basic model from C++ to D
+- [ ] Comment and upload R code for heatmaps
+- [ ] Edit code to take in batches of inputs
+- [ ] Fully comment code for non-tech users
+- [ ] Implement heuristic extension comparison
