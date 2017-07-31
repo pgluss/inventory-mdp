@@ -37,7 +37,6 @@ To do!
 
 ## To Do
 
-
 - [ ] Update boundary conditions
 - [ ] Implement new lower boundary on N in the extended model
 - [ ] Implement CSV file outputs for data analysis in Excel and R
@@ -46,3 +45,4 @@ To do!
 - [ ] Edit code to take in batches of inputs
 - [ ] Fully comment code for non-tech users
 - [ ] Implement heuristic extension comparison
+- [ ] Add printed checkpoints to code
