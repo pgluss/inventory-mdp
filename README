@@ -1,0 +1,1 @@
+dub --config=ha --build=release-nobounds

@@ -1,9 +1,33 @@
 {
 	"name": "mdpd",
-	"authors": [
-		"pgluss"
-	],
-	"description": "A minimal D application.",
-	"copyright": "Copyright © 2017, pgluss",
-	"license": "proprietary"
+	"authors": ["Paula Gluss"],
+	"description": "A Markov Decision Process Simulation",
+	"copyright": "Copyright © 2017, Paula Gluss",
+	"license": "gpl",
+    "configurations": [
+        {
+            "name": "ha",
+            "targetType": "executable",
+            "mainSourceFile": "source/ha.d",
+            "excludedSourceFiles": ["source/basic.d", "source/extension.d", "source/heuristic.d"]
+        },
+        {
+            "name": "basic",
+            "targetType": "executable",
+            "mainSourceFile": "source/basic.d",
+            "excludedSourceFiles": ["source/ha.d", "source/extension.d", "source/heuristic.d"]
+        },
+        {
+            "name": "extension",
+            "targetType": "executable",
+            "mainSourceFile": "source/extension.d",
+            "excludedSourceFiles": ["source/ha.d", "source/basic.d", "source/heuristic.d"]
+        },
+        {
+            "name": "heuristic",
+            "targetType": "executable",
+            "mainSourceFile": "source/heuristic.d",
+            "excludedSourceFiles": ["source/ha.d", "source/basic.d", "source/extension.d"]
+        }
+    ]
 }
