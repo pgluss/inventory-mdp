@@ -39,7 +39,7 @@ To do!
 
 - [ ] Update boundary conditions
 - [ ] Implement new lower boundary on N in the extended model
-- [ ] Implement CSV file outputs for data analysis in Excel and R
+    - [ ] Implement CSV file outputs for data analysis in Excel and R
 - [ ] Move basic model from C++ to D
 - [ ] Comment and upload R code for heatmaps
 - [ ] Edit code to take in batches of inputs
