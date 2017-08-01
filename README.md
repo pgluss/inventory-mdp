@@ -38,13 +38,19 @@ To do!
 ## To Do
 
 - [ ] Update boundary conditions
-- [ ] Implement new lower boundary on N in the extended model
+- [X] Implement new lower boundary on N in the extended model
 - [ ] Implement CSV file outputs for data analysis in Excel and R
+    - [ ] Initial model
+    - [ ] Extended model
+    - [ ] Heuristic
 - [ ] Move basic model from C++ to D
 - [ ] Comment and upload R code for heatmaps
     - [X] Commented R code
     - [ ] Make heatmap boundaries flexible
 - [ ] Edit code to take in batches of inputs
 - [ ] Fully comment code for non-tech users
+    - [ ] Initial model
+    - [X] Extended model
+    - [ ] Heuristic
 - [ ] Implement heuristic extension comparison
 - [ ] Add printed checkpoints to code

@@ -28,78 +28,48 @@ enum int Dy  = 3;
 enum double pn = 0.3;
 enum double po = 0.3;
 
-enum int n = -50;
-enum int m = 50;
-enum int M = 500;
+enum int n = -20;       // Minimum allowed inventory for stock
+enum int m = 20;        // Maximum allowed inventory for stock
+enum int Nmin = 1;      // Minumum simulated population
+enum int M = 51;        // Maximum simulated population
 
-enum double ENFrac = (lambdax1 + lambdax2 + lambday) / (gamma*(1 - pn));
+enum double EN = (lambdax1 + lambdax2 + lambday) / (gamma*(1 - pn)); // Expected value of N
 
 __gshared float[] fvals;
 
+// The main function, uses the below functions to perform value iteration
 void main() {
-    /+fvals = new float[(M+1)*(m-n+1)^^3];
+    fvals = new float[(M-Nmin+1)*(m-n+1)^^3];
 
     for (int i = 0; i < fvals.length; i++) {
-      fvals[i] = 0;
+        fvals[i] = 0;
     }
-    +/
+    
+
     auto startTime = Clock.currTime(UTC());
-    //int numIter = vi(1e-2);
-
-    double en = EN(1e-20);
-
+    int numIter = vi(1e-2);
     auto elapsedTime = Clock.currTime(UTC())- startTime;
 
-    stdout.writefln("Len: %d, \tNum Iter: %f, \tTotal Time: %s", fvals.length, en, elapsedTime);
+    stdout.writefln("Len: %d, \tNum Iter: %d, \tTotal Time: %s", fvals.length, numIter, elapsedTime);
 }
 
-double EN(double thresh, int maxIter = 1000) {
-    double maxError = thresh + 1;
-    int i = 0;
-    int j = 0;
-
-    double inside = 1;
-    double EN = 0;
-    double fact = 1;
-
-    while (maxError > thresh && j++ < maxIter) {
-        fact *= j;
-        double old_val = inside;
-        inside += (1.0/fact)*(ENFrac^^j);
-        maxError = abs(inside - old_val);
-    }
-
-    maxError = thresh + 1;
-    fact = 1;
-
-    while (maxError > thresh && i++ < maxIter) {
-        fact *= i;
-        double pi = ((1.0/fact) * (ENFrac^^i)) / inside;
-
-        double old_val = EN;
-        EN += i*pi;
-
-        maxError = abs(EN - old_val);
-    }
-
-    writeln("Average N is: ", EN);
-
-    return EN;
-}
-
-
+// Takes in a value x and returns x is x is positive and 0 if x is negative
 int plus(int x) {
     return ((x > 0) ? (x) : 0);
 }
 
+// Takes in a value x and returns -x if x is negative and 0 if x is positive
 int minus(int x) {
     return ((x < 0) ? -(x) : 0);
 }
 
+// Indicator: returns 1 if x is negative and 0 if x is positive
 int indic(int x) {
     return ((x < 0) ? 1 : 0);
 }
 
+// Returns by reference the f-value for a given state
+// Handles boundary conditions for each input variable
 ref float f(int x1, int x2, int y, int N) {
     if (x1 < n) {
         x1 = n;
@@ -119,8 +89,8 @@ ref float f(int x1, int x2, int y, int N) {
         y = m;
     }
     
-    if (N < 0) {
-        N = 0;
+    if (N < Nmin) {
+        N = Nmin;
     } else if (N > M) {
         N = M;
     }
@@ -128,27 +98,37 @@ ref float f(int x1, int x2, int y, int N) {
     x1 = x1 - n;
     x2 = x2 - n;
     y  = y  - n;
-    int i = x1*(M+1)*(m-n+1)^^2 + x2*(M+1)*(m-n+1) + y*(M+1) + N;
+    N  = N  - Nmin;
+    int i = x1*(M-Nmin+1)*(m-n+1)^^2 + x2*(M-Nmin+1)*(m-n+1) + y*(M-Nmin+1) + N;
     return fvals[i];
 }
 
-
+// Return the x1 value associated with the given index in the array
+// Note that we are representing a 4D matrix as a one dimensional array
 int x1(int index) {
-    return index / ((M+1)*(m-n+1)^^2) + n;
+    return index / ((M-Nmin+1)*(m-n+1)^^2) + n;
 }
 
+// Return the x2 value associated with the given index in the array
+// Note that we are representing a 4D matrix as a one dimensional array
 int x2(int index) {
-    return (index % ((M+1)*(m-n+1)^^2)) / ((M+1)*(m-n+1)) + n;
+    return (index % ((M-Nmin+1)*(m-n+1)^^2)) / ((M-Nmin+1)*(m-n+1)) + n;
 }
 
+// Return the y value associated with the given index in the array
+// Note that we are representing a 4D matrix as a one dimensional array
 int y(int index) {
-    return (index % ((M+1)*(m-n+1))) / (M+1) + n;
+    return (index % ((M-Nmin+1)*(m-n+1))) / (M-Nmin+1) + n;
 }
 
+// Return the N value associated with the given index in the array
+// Note that we are representing a 4D matrix as a one dimensional array
 int N(int index) {
-    return index % (M+1);
+    return index % (M-Nmin+1) + Nmin;
 }
 
+// Calculates the sum of the holding cost and backorder costs for a given state
+// It depends on current stock levels
 float h(int x1, int x2, int y) {
     float hVal = 0.0;
     hVal += (x1 < 0) ? -x1*bx1 : x1*hx1;
@@ -157,18 +137,26 @@ float h(int x1, int x2, int y) {
     return hVal;
 }
 
+// Calculates the probability of bulk demand of size d
+// Currently it's constant depending on maximum bulk demand size simulated
 double px1(int d) {
     return 1.0/Dx1;
 }
 
+// Calculates the probability of bulk demand of size d
+// Currently it's constant depending on maximum bulk demand size simulated
 double px2(int d) {
     return 1.0/Dx2;
 }
 
+// Calculates the probability of bulk demand of size d
+// Currently it's constant depending on maximum bulk demand size simulated
 double py(int d) {
     return 1.0/Dy;
 }
 
+// Calculates T1v as per the equation found in the paper
+// See section "Formulation of the Extended Model"
 double T1v(int x1, int x2, int y, int N) {
   double T1v = 0;
   T1v += (lambdax1 / (lambdax1 + lambdax2))*T11v(x1, x2, y, N, 1);
@@ -176,10 +164,14 @@ double T1v(int x1, int x2, int y, int N) {
   return T1v;
 }
 
+// Calculates T2v as per the equation found in the paper
+// See section "Formulation of the Extended Model"
 double T2v(int x1, int x2, int y, int N, int dy) {
   return f(x1, x2, y - dy, N);
 }
 
+// Calculates T3v as per the equation found in the paper
+// See section "Formulation of the Extended Model"
 double T3v(int x1, int x2, int y, int N) {
   double T3v = 0;
   T3v += (1 - pn - po)*f(x1, x2, y + 1, N - 1);
@@ -190,6 +182,8 @@ double T3v(int x1, int x2, int y, int N) {
   return T3v;
 }
 
+// Calculates T4v as per the equation found in the paper
+// See section "Formulation of the Extended Model"
 double T4v(int x1, int x2, int y, int N) {
   double T4v = 0;
   if (y <= 0) {
@@ -210,6 +204,8 @@ double T4v(int x1, int x2, int y, int N) {
   return T4v;
 }
 
+// Calculates T11v as per the equation found in the paper
+// See section "Formulation of the Extended Model"
 double T11v(int x1, int x2, int y, int N, int dx1) {
   double T11v = 0;
   if (dx1 <= x1) {
@@ -229,6 +225,8 @@ double T11v(int x1, int x2, int y, int N, int dx1) {
   return T11v;
 }
 
+// Calculates T12v as per the equation found in the paper
+// See section "Formulation of the Extended Model"
 double T12v(int x1, int x2, int y, int N, int dx2) {
   double T12v = 0;
   if (dx2 <= x2) {
@@ -248,6 +246,8 @@ double T12v(int x1, int x2, int y, int N, int dx2) {
   return T12v;
 }
 
+// Performs value iteration until the error is below the specified threshold
+// or the maximum number of iterations have occurred
 int vi(float thresh, uint maxIter = cast(int)1e6) {
     float maxError = thresh + 1;
     float avgError = 0;
@@ -265,7 +265,7 @@ int vi(float thresh, uint maxIter = cast(int)1e6) {
         //maxError = localError;
 
 
-        // Parallel
+        // Parallel: Uses multiple CPUs
         auto localErrors = taskPool.amap!viTask(iota(cast(int)fvals.length));
         maxError = taskPool.reduce!max(localErrors);
         avgError = taskPool.reduce!"a+b"(localErrors)/localErrors.length;
@@ -278,6 +278,7 @@ int vi(float thresh, uint maxIter = cast(int)1e6) {
     return i;
 }
 
+// Calculates the new f-value for a given index
 float viTask(int index) {
     int x1 = x1(index);
     int x2 = x2(index);
