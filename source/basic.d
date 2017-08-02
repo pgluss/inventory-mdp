@@ -27,7 +27,7 @@ void main() {
 
     writeln("v(0,0): ", f(0,0), "\t\t-\tTotal Time: ", elapsedTime);
 
-    decide("BUTTS.csv");
+    decide("test1.csv");
 }
 
 // Returns the f-value for a given (x,y) state
