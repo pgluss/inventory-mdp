@@ -44,9 +44,9 @@ To do!
     - [ ] Extended model
     - [ ] Heuristic
 - [X] Move basic model from C++ to D
-- [ ] Comment and upload R code for heatmaps
+- [X] Comment and upload R code for heatmaps
     - [X] Commented R code
-    - [ ] Make heatmap boundaries flexible
+    - [X] Make heatmap boundaries flexible
 - [ ] Edit code to take in batches of inputs
 - [ ] Fully comment code for non-tech users
     - [X] Initial model
