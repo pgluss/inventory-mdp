@@ -39,14 +39,15 @@ enum double lambday_hat  = lambday*EDy;
 enum double pn = 0.3;
 enum double po = 0.3;
 
-enum int n = -50;
-enum int m = 50;
+enum int n = -100;
+enum int m = 100;
 
 enum int EN = cast(int) ((lambdax_hat + lambday_hat) / (gamma*(1 - pn)));
 enum double delta = EN*gamma;
 
 __gshared float[] fvals;
 
+// The main function. Runs the value iteration function.
 void main() {
     fvals = new float[(m-n+1)^^2];
 
@@ -58,10 +59,12 @@ void main() {
     int numIter = vi(1e-2);
     auto elapsedTime = Clock.currTime(UTC())- startTime;
 
+    decide("test-h.csv");
+
     stdout.writefln("Num States: %d, \tEN: %d, \tTotal Time: %s", fvals.length, EN, elapsedTime);
 }
 
-
+// Returns the f-value for a given (x,y) state
 ref float f(int x, int y) {
     if (x < n) {
         x = n;
@@ -81,15 +84,17 @@ ref float f(int x, int y) {
     return fvals[i];
 }
 
-
+// Returns the x value for a given index in the array of f-values
 int x(int index) {
     return index / (m-n+1) + n;
 }
 
+// Returns the y value for a given index in the array of f-values
 int y(int index) {
     return index % (m-n+1) + n;
 }
 
+// Computes the holding or backorder costs for the given inventory (x,y)
 float h(int x, int y) {
     float hVal = 0.0;
     hVal += (x < 0) ? -x*bx : x*hx;
@@ -97,6 +102,8 @@ float h(int x, int y) {
     return hVal;
 }
 
+// Performs value iterations until the error is below the specified threshold
+// or the max number of iterations have ocurred
 int vi(float thresh, uint maxIter = cast(int)1e6) {
     float maxError = thresh + 1;
     float avgError = 0;
@@ -127,6 +134,7 @@ int vi(float thresh, uint maxIter = cast(int)1e6) {
     return i;
 }
 
+// Does value iteration for a single state
 float viTask(int index) {
     int x = x(index);
     int y = y(index);
@@ -150,48 +158,43 @@ float viTask(int index) {
     return abs(f(x, y) - old_f);
 }
 
+enum int NoProduce = 0;   // Idle
+enum int ProduceRaw = 1;  // Produce new product from raw materials
+enum int ProduceUsed = 2; // Produce new product by refurbishing used product
 
+// Get decisions for each state and print to a file
+void decide(string filename) {
+    File file = File(filename, "w");
+    file.writefln("x, y, f-value, decision");
 
-/+
-double calcEN(double thresh, int maxIter = 100) {
-    double ENFrac = (lambdax_hat + lambday_hat) / (gamma*(1 - pn));
-    double maxError = thresh + 1;
+    for (int i = 0; i < fvals.length; i++) {
+        int x = x(i);
+        int y = y(i);
 
-    double inside = 1;
-    double en = 0;
-    double fact = 1;
+        double fval = f(x,y);
+        int d;
 
-    for (int j = 1; j <= maxIter; j++) {
-        fact *= j;
-        inside += (1.0/fact)*(ENFrac^^j);
+        if (x == m) {
+            d = NoProduce;
+        } else if (y <= 0) {
+            if (f(x,y) < f(x+1,y)) {
+                d = NoProduce;
+            } else {
+                d = ProduceRaw;
+            }
+        } else if (y > 0) {
+            if (f(x,y) < f(x+1,y) && f(x,y) < f(x+1,y-1)) {
+                d = NoProduce;
+            } else if (f(x+1,y) < f(x,y) && f(x+1,y) < f(x+1,y-1)) {
+                d = ProduceRaw;
+            } else {
+                d = ProduceUsed;
+            }
+        } else {
+            assert(false, "Error: Check x and y!");
+        }
+
+        file.writefln("%d, %d, %f, %d", x, y, fval, d);
     }
-
-    maxError = thresh + 1;
-    fact = 1;
-
-    for (int i = 1; i <= maxIter; i++) {
-        fact *= i;
-        double pi = ((1.0/fact) * (ENFrac^^i)) / inside;
-
-        double old_val = en;
-        en += i*pi;
-
-        maxError = abs(en - old_val);
-    }
-
-    /+while (maxError > thresh && i++ < maxIter) {
-        fact *= i;
-        double pi = ((1.0/fact) * (ENFrac^^i)) / inside;
-
-        double old_val = en;
-        en += i*pi;
-
-        maxError = abs(en - old_val);
-    } +/
-
-    //writeln("Average N is: ", en);
-
-    return en;
 }
 
-+/

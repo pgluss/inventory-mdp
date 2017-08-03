@@ -108,10 +108,11 @@ float viTask(int index) {
     return abs(f(x,y) - old_f);
 }
 
-enum int NoProduce = 0;
-enum int ProduceRaw = 1;
-enum int ProduceUsed = 2;
+enum int NoProduce = 0;   // Idle
+enum int ProduceRaw = 1;  // Produce new product from raw materials
+enum int ProduceUsed = 2; // Produce new product by refurbishing used product
 
+// Get decisions for each state and print to a file
 void decide(string filename) {
     File file = File(filename, "w");
     file.writefln("x, y, f-value, decision");
