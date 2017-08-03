@@ -49,6 +49,8 @@ void main() {
     auto startTime = Clock.currTime(UTC());
     int numIter = vi(1e-2);
     auto elapsedTime = Clock.currTime(UTC())- startTime;
+    
+    decide("test-e.csv");
 
     stdout.writefln("Len: %d, \tNum Iter: %d, \tTotal Time: %s", fvals.length, numIter, elapsedTime);
 }
@@ -310,4 +312,121 @@ float viTask(int index) {
                                       (alpha + lambdax1 + lambdax2 + lambday + mu + M*gamma);
 
     return abs(f(x1, x2, y, N) - old_f);
+}
+
+enum int NoProduce = 0;     // Idle
+enum int ProduceRawX1 = 1;  // Produce new product x1 from raw materials
+enum int ProduceRawX2 = 2;  // Produce new product x2 from raw materials
+enum int ProduceUsedX1 = 3; // Produce new product x1 from used materials
+enum int ProduceUsedX2 = 4; // Produce new product x2 from used materials
+
+// Get decisions for each state and print to a file
+void decide(string filename) {
+    File file = File(filename, "w");
+
+    for (int i = 0; i < fvals.length; i++) {
+        int x1 = x1(i);
+        int x2 = x2(i);
+        int y  =  y(i);
+        int N  =  N(i);
+
+        double fval = f(x1, x2, y, N);
+        int d;
+
+        if (x1 != m && x2 != m && y > 0) {
+            if (f(x1,x2,y,N) < f(x1+1,x2,y,N) && 
+                f(x1,x2,y,N) < f(x1,x2+1,y,N) &&
+                f(x1,x2,y,N) < f(x1+1,x2,y-1,N) &&
+                f(x1,x2,y,N) < f(x1,x2+1,y-1,N)) {
+            
+                d = NoProduce;
+            } else if (f(x1+1,x2,y,N) < f(x1,x2,y,N) &&
+                       f(x1+1,x2,y,N) < f(x1,x2+1,y,N) &&
+                       f(x1+1,x2,y,N) < f(x1+1,x2,y-1,N) &&
+                       f(x1+1,x2,y,N) < f(x1,x2+1,y-1,N)) {
+                
+                d = ProduceRawX1;
+            } else if (f(x1,x2+1,y,N) < f(x1,x2,y,N) &&
+                       f(x1,x2+1,y,N) < f(x1+1,x2,y,N) &&
+                       f(x1,x2+1,y,N) < f(x1+1,x2,y-1,N) &&
+                       f(x1,x2+1,y,N) < f(x1,x2+1,y-1,N)) {
+            
+                d = ProduceRawX2;
+            } else if (f(x1+1,x2,y-1,N) < f(x1,x2,y,N) &&
+                       f(x1+1,x2,y-1,N) < f(x1,x2+1,y,N) &&
+                       f(x1+1,x2,y-1,N) < f(x1+1,x2,y,N) &&
+                       f(x1+1,x2,y-1,N) < f(x1,x2+1,y-1,N)) {
+
+                d = ProduceUsedX1;
+            } else if (f(x1,x2+1,y-1,N) < f(x1,x2,y,N) &&
+                       f(x1,x2+1,y-1,N) < f(x1+1,x2,y,N) &&
+                       f(x1,x2+1,y-1,N) < f(x1+1,x2,y-1,N) &&
+                       f(x1,x2+1,y-1,N) < f(x1,x2+1,y,N)) {
+                
+                d = ProduceUsedX2;
+            }
+        } else if (x1 != m && x2 != m && y <= 0) {
+            if (f(x1,x2,y,N) < f(x1+1,x2,y,N) && 
+                f(x1,x2,y,N) < f(x1,x2+1,y,N)) {
+            
+                d = NoProduce;
+            } else if (f(x1+1,x2,y,N) < f(x1,x2,y,N) &&
+                       f(x1+1,x2,y,N) < f(x1,x2+1,y,N)) {
+                
+                d = ProduceRawX1;
+            } else if (f(x1,x2+1,y,N) < f(x1,x2,y,N) &&
+                       f(x1,x2+1,y,N) < f(x1+1,x2,y,N)) {
+            
+                d = ProduceRawX2;
+            }
+        } else if (x1 == m && x2 != m && y > 0){
+            if (f(x1,x2,y,N) < f(x1,x2+1,y,N) &&
+                f(x1,x2,y,N) < f(x1,x2+1,y-1,N)) {
+            
+                d = NoProduce;
+            } else if (f(x1,x2+1,y,N) < f(x1,x2,y,N) &&
+                       f(x1,x2+1,y,N) < f(x1,x2+1,y-1,N)) {
+            
+                d = ProduceRawX2;
+            } else if (f(x1,x2+1,y-1,N) < f(x1,x2,y,N) &&
+                       f(x1,x2+1,y-1,N) < f(x1,x2+1,y,N)) {
+                
+                d = ProduceUsedX2;
+            }
+        } else if (x1 == m && x2 != m && y <= 0) {
+            if (f(x1,x2,y,N) < f(x1,x2+1,y,N)) {
+            
+                d = NoProduce;
+            } else if (f(x1,x2+1,y,N) < f(x1,x2,y,N)) {
+            
+                d = ProduceRawX2;
+            }
+        } else if (x2 != m && x2 == m && y > 0) {
+            if (f(x1,x2,y,N) < f(x1+1,x2,y,N) && 
+                f(x1,x2,y,N) < f(x1+1,x2,y-1,N)) {
+            
+                d = NoProduce;
+            } else if (f(x1+1,x2,y,N) < f(x1,x2,y,N) &&
+                       f(x1+1,x2,y,N) < f(x1+1,x2,y-1,N)) {
+                
+                d = ProduceRawX1;
+            } else if (f(x1+1,x2,y-1,N) < f(x1,x2,y,N) &&
+                       f(x1+1,x2,y-1,N) < f(x1+1,x2,y,N)) {
+
+                d = ProduceUsedX1;
+            }
+        } else if (x2 != m && x2 == m && y <= 0) {
+            if (f(x1,x2,y,N) < f(x1+1,x2,y,N)) { 
+            
+                d = NoProduce;
+            } else if (f(x1+1,x2,y,N) < f(x1,x2,y,N)) {
+                
+                d = ProduceRawX1;
+            }
+        } else {
+            d = NoProduce;
+        }
+
+        file.writefln("%d, %d, %d, %d, %f, %d", x1, x2, y, N, fval, d);
+    }
 }
