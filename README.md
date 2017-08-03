@@ -42,15 +42,15 @@ To do!
 - [ ] Implement CSV file outputs for data analysis in Excel and R
     - [X] Initial model
     - [ ] Extended model
-    - [ ] Heuristic
+    - [X] Heuristic
 - [X] Move basic model from C++ to D
 - [X] Comment and upload R code for heatmaps
     - [X] Commented R code
     - [X] Make heatmap boundaries flexible
 - [ ] Edit code to take in batches of inputs
-- [ ] Fully comment code for non-tech users
+- [X] Fully comment code for non-tech users
     - [X] Initial model
     - [X] Extended model
-    - [ ] Heuristic
+    - [X] Heuristic
 - [ ] Implement heuristic extension comparison
 - [ ] Add printed checkpoints to code
