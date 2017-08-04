@@ -1,33 +1,57 @@
-import std.stdio : writeln, File;
+import std.stdio;
 import std.math : abs;
 import std.algorithm.comparison : min,max;
 import std.parallelism;
 import std.datetime;
 import std.range : iota;
+import std.string;
+import std.conv;
+import std.array;
 
-enum double lambdax = 0.85;
-enum double lambday = 0.85;
-enum double mu = 1;
-enum double delta = 0.8;
-enum double cx = 11.4;
-enum double cy = 5.7;
-enum double hx = 2;
-enum double hy = 1;
-enum double alpha = 0.05;
-enum int m = 100;
+double lambdax, lambday, mu, delta, alpha;
+double cx, cy, hx, hy;
+int m;
 
-__gshared float[(m+1)^^2] fvals = 0;
+__gshared float[] fvals;
+
+//__gshared float[(m+1)^^2] fvals = 0;
 
 // The main function. Runs the value iteration function.
 void main() {
+    File params = File("params-basic.csv");
+    int batchID = 0;
+    foreach (line; params.byLine) {
+        if (!line.empty && line[0] != '#') {
+            batchID++;
+            char[][] tokens = line.split(",");
 
-    auto startTime = Clock.currTime(UTC());
-    float error = vi(1e-10, cast(int)1e10);
-    auto elapsedTime = Clock.currTime(UTC())- startTime;
+            lambdax = tokens[0].strip.to!double;
+            lambday = tokens[1].strip.to!double;
+            mu      = tokens[2].strip.to!double;
+            delta   = tokens[3].strip.to!double;
+            cx      = tokens[4].strip.to!double;
+            cy      = tokens[5].strip.to!double;
+            hx      = tokens[6].strip.to!double;
+            hy      = tokens[7].strip.to!double;
+            alpha   = tokens[8].strip.to!double;
+            m       = tokens[9].strip.to!int;
 
-    writeln("v(0,0): ", f(0,0), "\t\t-\tTotal Time: ", elapsedTime);
+            fvals = new float[(m+1)^^2];
 
-    decide("test1.csv");
+            for (int i = 0; i < fvals.length; i++) {
+                fvals[i] = 0;
+            }
+
+            auto startTime = Clock.currTime(UTC());
+            float error = vi(1e-10, cast(int)1e10);
+            auto elapsedTime = Clock.currTime(UTC())- startTime;
+
+            decide("basic-batch-" ~ batchID.to!string ~ ".csv");
+
+            stdout.writefln("Batch %d is complete.", batchID);
+            stdout.writefln("v(0,0): %f \t Total Time: %s \n", f(0,0), elapsedTime);
+        }
+    }
 }
 
 // Returns the f-value for a given (x,y) state

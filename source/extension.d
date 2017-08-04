@@ -4,55 +4,80 @@ import std.algorithm.comparison : min,max;
 import std.parallelism;
 import std.datetime;
 import std.range : iota;
+import std.array;
+import std.conv;
+import std.string;
 
-enum double lambdax1 = 0.5;
-enum double lambdax2 = 0.5;
-enum double lambday  = 0.5; 
+double lambdax1, lambdax2, lambday;
+double mu, gamma, alpha;
+double bx1, bx2, by;
+double hx1, hx2, hy;
+int Dx1, Dx2, Dy;
+double pn, po;
 
-enum double mu = 1;
-enum double gamma = 0.5;
-enum double alpha = 0.05;
+int n;       // Minimum allowed inventory for stock
+int m;       // Maximum allowed inventory for stock
+int Nmin;    // Minumum simulated population
+int M;       // Maximum simulated population
 
-enum double bx1 = 80;
-enum double bx2 = 100;
-enum double by  = 50;
-
-enum double hx1 = 2;
-enum double hx2 = 2;
-enum double hy  = 1;
-
-enum int Dx1 = 3;
-enum int Dx2 = 3;
-enum int Dy  = 3;
-
-enum double pn = 0.3;
-enum double po = 0.3;
-
-enum int n = -20;       // Minimum allowed inventory for stock
-enum int m = 20;        // Maximum allowed inventory for stock
-enum int Nmin = 1;      // Minumum simulated population
-enum int M = 51;        // Maximum simulated population
-
-enum double EN = (lambdax1 + lambdax2 + lambday) / (gamma*(1 - pn)); // Expected value of N
+double EN;
 
 __gshared float[] fvals;
 
 // The main function, uses the below functions to perform value iteration
 void main() {
-    fvals = new float[(M-Nmin+1)*(m-n+1)^^3];
+    File params = File("params-extension.csv");
+    int batchID = 0;
+    foreach (line; params.byLine) {
+        if (!line.empty && line[0] != '#') {
+            batchID++;
+            char[][] tokens = line.split(",");
+            
+            lambdax1 = tokens[0].strip.to!double;
+            lambdax2 = tokens[1].strip.to!double;
+            lambday  = tokens[2].strip.to!double;
+            
+            mu       = tokens[3].strip.to!double;
+            gamma    = tokens[4].strip.to!double;
+            alpha    = tokens[5].strip.to!double;
 
-    for (int i = 0; i < fvals.length; i++) {
-        fvals[i] = 0;
+            bx1      = tokens[6].strip.to!double;
+            bx2      = tokens[7].strip.to!double;
+            by       = tokens[8].strip.to!double;
+
+            hx1      = tokens[9].strip.to!double;
+            hx2      = tokens[10].strip.to!double;
+            hy       = tokens[11].strip.to!double;
+
+            Dx1      = tokens[12].strip.to!int;
+            Dx2      = tokens[13].strip.to!int;
+            Dy       = tokens[14].strip.to!int;
+
+            po       = tokens[15].strip.to!double;
+            pn       = tokens[16].strip.to!double;
+
+            n        = tokens[17].strip.to!int;
+            m        = tokens[18].strip.to!int;
+            Nmin     = tokens[19].strip.to!int;
+            M        = tokens[20].strip.to!int;
+            
+            EN = (lambdax1 + lambdax2 + lambday) / (gamma*(1 - pn)); // Expected value of N
+            fvals = new float[(M-Nmin+1)*(m-n+1)^^3];
+            
+            for (int i = 0; i < fvals.length; i++) {
+                fvals[i] = 0;
+            }
+
+            auto startTime = Clock.currTime(UTC());
+            int numIter = vi(1e-2);
+            auto elapsedTime = Clock.currTime(UTC())- startTime;
+    
+            decide("extension-batch-" ~ batchID.to!string ~ ".csv");
+
+            stdout.writefln("Batch %d is complete.", batchID);
+            stdout.writefln("Num States Calculated: %d, \tNum Iter: %d, \tTotal Time: %s \n", fvals.length, numIter, elapsedTime);
+        }
     }
-    
-
-    auto startTime = Clock.currTime(UTC());
-    int numIter = vi(1e-2);
-    auto elapsedTime = Clock.currTime(UTC())- startTime;
-    
-    decide("test-e.csv");
-
-    stdout.writefln("Len: %d, \tNum Iter: %d, \tTotal Time: %s", fvals.length, numIter, elapsedTime);
 }
 
 // Takes in a value x and returns x is x is positive and 0 if x is negative
