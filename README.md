@@ -34,8 +34,8 @@ code will run each batch until it completes and will output a .csv file of resul
 edited, save the .csv file and run the code.
 
 Important: 
--The order of the parameters must match that of the header. Do not change the order of the header.
--Each .d file has its own associated .csv parameter file. Be sure to edit the one for the code you want 
+- The order of the parameters must match that of the header. Do not change the order of the header.
+- Each .d file has its own associated .csv parameter file. Be sure to edit the one for the code you want 
 to run.
 
 ## Model Outputs
