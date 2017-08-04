@@ -27,9 +27,16 @@ The basic model is in C++ and the other models are written in D.
 
 ## Modifying Parameters
 
-The parameters of the model are declared at the beginning of each file. To modify them, open up 
-the file in a text editor and directly modify the values. Rerunning the code as described above 
-will automatically compile and use the new parameters.
+To modify parameters of the code, open the .csv file that corresponds to the desired experiment. Each line of 
+the .csv file below the header (the header is the line that starts with #) is a batch. To add a batch, simply 
+fill in the desired values across the row. Do not leave any of them blank. It is important to note that the 
+code will run each batch until it completes and will output a .csv file of results for each batch run. Once 
+edited, save the .csv file and run the code.
+
+Important: 
+-The order of the parameters must match that of the header. Do not change the order of the header.
+-Each .d file has its own associated .csv parameter file. Be sure to edit the one for the code you want 
+to run.
 
 ## Model Outputs
 
@@ -48,9 +55,11 @@ To do!
     - [X] Commented R code
     - [X] Make heatmap boundaries flexible
 - [ ] Edit code to take in batches of inputs
+    - [X] Initial model
+    - [X] Extended model
+    - [ ] Heuristic
 - [X] Fully comment code for non-tech users
     - [X] Initial model
     - [X] Extended model
     - [X] Heuristic
 - [ ] Implement heuristic extension comparison
-- [ ] Add printed checkpoints to code
