@@ -40,7 +40,20 @@ to run.
 
 ## Model Outputs
 
-To do!
+Each model has slightly different outputs, but they follow a similar pattern. Each one prints to a .csv file 
+where each state is a row.
+
+For example, the basic model outputs the following sample:
+x,  y,  f-value, decision
+0,  0,  100,    0
+0,  1,  105,    1
+
+Important:
+- Each row in the output file is a state and no state appears twice.
+- The number listed under the decision column corresponds to the optimal action for that state. Look in the 
+code to see which number corresponds to which decision.
+- Each output file includes a header which labels the columns.
+- When the code is run, it will output multiple .csv files, one for each batch.
 
 ## To Do
 
@@ -54,10 +67,10 @@ To do!
 - [X] Comment and upload R code for heatmaps
     - [X] Commented R code
     - [X] Make heatmap boundaries flexible
-- [ ] Edit code to take in batches of inputs
+- [X] Edit code to take in batches of inputs
     - [X] Initial model
     - [X] Extended model
-    - [ ] Heuristic
+    - [X] Heuristic
 - [X] Fully comment code for non-tech users
     - [X] Initial model
     - [X] Extended model

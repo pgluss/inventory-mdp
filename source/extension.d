@@ -8,19 +8,19 @@ import std.array;
 import std.conv;
 import std.string;
 
-double lambdax1, lambdax2, lambday;
-double mu, gamma, alpha;
-double bx1, bx2, by;
-double hx1, hx2, hy;
-int Dx1, Dx2, Dy;
-double pn, po;
+__gshared double lambdax1, lambdax2, lambday;
+__gshared double mu, gamma, alpha;
+__gshared double bx1, bx2, by;
+__gshared double hx1, hx2, hy;
+__gshared int Dx1, Dx2, Dy;
+__gshared double pn, po;
 
-int n;       // Minimum allowed inventory for stock
-int m;       // Maximum allowed inventory for stock
-int Nmin;    // Minumum simulated population
-int M;       // Maximum simulated population
+__gshared int n;       // Minimum allowed inventory for stock
+__gshared int m;       // Maximum allowed inventory for stock
+__gshared int Nmin;    // Minumum simulated population
+__gshared int M;       // Maximum simulated population
 
-double EN;
+__gshared double EN;
 
 __gshared float[] fvals;
 

@@ -8,9 +8,9 @@ import std.string;
 import std.conv;
 import std.array;
 
-double lambdax, lambday, mu, delta, alpha;
-double cx, cy, hx, hy;
-int m;
+__gshared double lambdax, lambday, mu, delta, alpha;
+__gshared double cx, cy, hx, hy;
+__gshared int m;
 
 __gshared float[] fvals;
 
