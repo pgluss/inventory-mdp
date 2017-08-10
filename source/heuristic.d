@@ -4,68 +4,87 @@ import std.algorithm.comparison : min,max;
 import std.parallelism;
 import std.datetime;
 import std.range : iota;
+import std.string;
+import std.array;
+import std.conv;
 
-enum double lambdax1 = 0.5;
-enum double lambdax2 = 0.5;
-enum double lambday  = 0.5; 
-
-enum double mu = 1;
-enum double gamma = 0.5 / 1000;
-enum double alpha = 0.05;
-
-enum double bx1 = 80;
-enum double bx2 = 100;
-enum double bx  = bx1*(lambdax1_hat / lambdax_hat) + bx2*(lambdax2_hat / lambdax_hat);
-enum double by  = 50;
-
-enum double hx1 = 2;
-enum double hx2 = 2;
-enum double hx  = hx1*(lambdax1_hat / lambdax_hat) + hx2*(lambdax2_hat / lambdax_hat);
-enum double hy  = 1;
-
-enum int Dx1 = 3;
-enum int Dx2 = 3;
-enum int Dy  = 3;
-
-enum int EDx1 = (Dx1 + 1) / 2;
-enum int EDx2 = (Dx2 + 1) / 2;
-enum int EDy  = (Dy  + 1) / 2;
-
-enum double lambdax1_hat = lambdax1*EDx1;
-enum double lambdax2_hat = lambdax2*EDx2;
-enum double lambdax_hat  = lambdax1_hat + lambdax2_hat;
-enum double lambday_hat  = lambday*EDy;
-
-enum double pn = 0.3;
-enum double po = 0.3;
-
-enum int n = -100;
-enum int m = 100;
-
-enum int EN = cast(int) ((lambdax_hat + lambday_hat) / (gamma*(1 - pn)));
-enum double delta = EN*gamma;
+__gshared double lambdax1, lambdax2, lambday;
+__gshared double mu, gamma, alpha;
+__gshared double bx1, bx2, by, bx;
+__gshared double hx1, hx2, hy, hx;
+__gshared int Dx1, Dx2, Dy, EDx1, EDx2, EDy;
+__gshared double lambdax1_hat, lambdax2_hat, lambdax_hat, lambday_hat;
+__gshared double pn, po, delta;
+__gshared int n, m, EN;
 
 __gshared float[] fvals;
 
 // The main function. Runs the value iteration function.
 void main() {
-    fvals = new float[(m-n+1)^^2];
+    File params = File("params-heuristic.csv");
+    int batchID = 0;
+    foreach (line; params.byLine) {
+        if (!line.empty && line[0] != '#') {
+            batchID++;
+            char[][] tokens = line.split(",");
+            
+            lambdax1 = tokens[0].strip.to!double;
+            lambdax2 = tokens[1].strip.to!double;
+            lambday  = tokens[2].strip.to!double;
+            mu       = tokens[3].strip.to!double;
+            gamma    = tokens[4].strip.to!double;
+            alpha    = tokens[5].strip.to!double;
+            bx1      = tokens[6].strip.to!double;
+            bx2      = tokens[7].strip.to!double;
+            by       = tokens[8].strip.to!double;
+            hx1      = tokens[9].strip.to!double;
+            hx2      = tokens[10].strip.to!double;
+            hy       = tokens[11].strip.to!double;
+            Dx1      = tokens[12].strip.to!int;
+            Dx2      = tokens[13].strip.to!int;
+            Dy       = tokens[14].strip.to!int;
+            pn       = tokens[15].strip.to!double;
+            po       = tokens[16].strip.to!double;
+            n        = tokens[17].strip.to!int;
+            m        = tokens[18].strip.to!int;
 
-    for (int i = 0; i < fvals.length; i++) {
-      fvals[i] = 0;
+            EDx1 = (Dx1 + 1) / 2;
+            EDx2 = (Dx2 + 1) / 2;
+            EDy  = (Dy  + 1) / 2;
+
+            lambdax1_hat = lambdax1*EDx1;
+            lambdax2_hat = lambdax2*EDx2;
+            lambdax_hat  = lambdax1_hat + lambdax2_hat;
+            lambday_hat  = lambday*EDy;
+
+            hx  = hx1*(lambdax1_hat / lambdax_hat) + hx2*(lambdax2_hat / lambdax_hat);
+            bx  = bx1*(lambdax1_hat / lambdax_hat) + bx2*(lambdax2_hat / lambdax_hat);
+            
+            EN = cast(int) ((lambdax_hat + lambday_hat) / (gamma*(1 - pn)));
+            delta = EN*gamma;
+
+
+            fvals = new float[(m-n+1)^^2];
+            
+            for (int i = 0; i < fvals.length; i++) {
+                fvals[i] = 0;
+            }
+
+            auto startTime = Clock.currTime(UTC());
+            int numIter = vi(1e-2);
+            auto elapsedTime = Clock.currTime(UTC())- startTime;
+
+            decide("heuristic-batch-" ~ batchID.to!string ~ ".csv");
+
+            stdout.writefln("Batch %d is complete", batchID);
+            stdout.writefln("Num States: %d, \tEN: %d, \tTotal Time: %s \n", fvals.length, EN, elapsedTime);
+        }
     }
-    
-    auto startTime = Clock.currTime(UTC());
-    int numIter = vi(1e-2);
-    auto elapsedTime = Clock.currTime(UTC())- startTime;
-
-    decide("test-h.csv");
-
-    stdout.writefln("Num States: %d, \tEN: %d, \tTotal Time: %s", fvals.length, EN, elapsedTime);
 }
 
 // Returns the f-value for a given (x,y) state
 ref float f(int x, int y) {
+    
     if (x < n) {
         x = n;
     } else if (x > m) {

@@ -14,8 +14,6 @@ int m;
 
 __gshared float[] fvals;
 
-//__gshared float[(m+1)^^2] fvals = 0;
-
 // The main function. Runs the value iteration function.
 void main() {
     File params = File("params-basic.csv");
